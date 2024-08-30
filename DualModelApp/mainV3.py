@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 import openai
 import os
-from components import chat_bots, image_searchings, food_suggestions, image_detection
+from components import chat_bots, image_searchings, food_suggestions
 from dotenv import load_dotenv
 import json
 import requests
@@ -117,11 +117,12 @@ def display_meal_plan(response):
 
 # Streamlit app layout
 st.title("AI-Powered Food Suggestion System Demo")
+st.write("Get personalized food suggestions or chat about nutrition!")
 
 # Sidebar for selecting functionality
 functionality_choice = st.sidebar.selectbox(
     "Choose Functionality",
-    ["Generate Meal Plan", "Chat about Food and Nutrition", "Search your own Food"]
+    ["Generate Meal Plan", "Chat about Food and Nutrition"]
 )
 
 # Toggle for selecting the AI model
@@ -138,7 +139,6 @@ st.sidebar.write("📓 Please note that the Google Image Generator is currently 
 
 
 if functionality_choice == "Generate Meal Plan":
-    st.write("Get personalized food suggestions!")
     if model_choice == "SarrMal (Tuning)":
         st.write("SarrMal (Tuning) model is Active.")
     else:
@@ -155,18 +155,11 @@ if functionality_choice == "Generate Meal Plan":
     age = st.number_input("Age", min_value=1, max_value=120, value=25)
     gender = st.selectbox("Gender", ["Male", "Female", "Other"])
     exercise = st.selectbox("Exercise Level", ["None", "Light", "Moderate", "Intense"])
-    diseases = st.multiselect("List any diseases", ["None", "Diabetes", "Hypertension"], default=["None"])
-    allergies = st.multiselect("List any allergies", ["None", "Peanuts", "Shellfish", "Milk"], default=["None"])
-    preferred_food = st.selectbox("Preferred Food", ["Burmese", "Chinese", "Western", "Japanese", "Korean", "Indian", "Other"])
-    food_type = st.selectbox(
-        "Food Type",
-        [
-            "Vegetarian",
-            "Non-Vegetarian",
-            "Balanced",
-            "Other"
-        ]
-    )
+    diseases = st.multiselect("List any diseases", ["None", "Diabetes", "Hypertension", "Celiac Disease", "Food Allergies"], default=["None"])
+    allergies = st.multiselect("List any allergies", ["None", "Peanuts", "Shellfish", "Eggs", "Milk"], default=["None"])
+    preferred_food = st.selectbox("Preferred Food", ["Burmese", "Thiland", "Chinese", "Western", "Japanese", "Korean", "Indian", "Other"])
+    food_type = st.selectbox("Food Type", ["Vegetarian", "Non-Vegetarian","Healthy","Gym-Rat","High-Calorie", "High-Fibre", "Low-Sugar", "High-Protein", "Balanced","Other"])
+
     # Generate the prompt based on user input
     prompt = f"""{{
         "weight": {weight},
@@ -209,7 +202,6 @@ if functionality_choice == "Generate Meal Plan":
                 st.warning("No response generated. Please check your input or try again later.")
 
 elif functionality_choice == "Chat about Food and Nutrition":
-    st.write("Food oriented chat session!")
     if model_choice == "SarrMal (Tuning)":
         st.write("SarrMal (Tuning) is Active.")
     else:
@@ -260,81 +252,3 @@ elif functionality_choice == "Chat about Food and Nutrition":
     # Button to clear the chat history
     if st.button("Clear Chat"):
         st.session_state.chat_history = []
-        
-elif functionality_choice == "Search your own Food":
-    st.write("Search for any food item!")
-    st.write("Image detection : OpenAI (GPT-4) is Active.(Fixed for this functionality)!")
-    st.write("Food suggestion : SarrMal (Tuning) is Active.(Fixed for this functionality)!")
-    
-    # Option for user to upload an image or use the camera
-    upload_option = st.radio("Choose image source:", ("Upload from device", "Use camera", "Use Text(If the image is not available)"))
-    
-    if upload_option == "Upload from device":
-        uploaded_image = st.file_uploader("Upload an image of the food item", type=["jpg", "jpeg", "png"])
-    elif upload_option == "Use camera":
-        uploaded_image = st.camera_input("Take a picture of the food item")
-    else:
-        uploaded_image = None
-        food_name = st.text_input("Enter the name of the food item", "")
-    
-    if uploaded_image is not None:
-        # Display the uploaded image
-        st.image(uploaded_image, caption='Uploaded Image.', use_column_width=True)
-        
-        # Encode and send the image to OpenAI API
-        base64_image = image_detection.encode_image(uploaded_image)
-        food_name = image_detection.get_food_name(base64_image)
-        
-        # Display the result
-        if food_name:
-            st.write(f"The name of the food is: **{food_name}**")
-        else:
-            st.write("This is not recognized as a food item.")
-            
-# elif functionality_choice == "Search your own Food":
-#     st.write("🍽️ **Search for any food item!**")
-#     st.write("🚀 Only SarrMal (Tuning) model is available for this functionality.")
-    
-#     # Option for user to upload an image or use the camera
-#     upload_option = st.radio("📸 Choose image source:", ("Upload from device", "Use camera"))
-    
-#     if upload_option == "Upload from device":
-#         uploaded_image = st.file_uploader("🖼️ Upload an image of the food item", type=["jpg", "jpeg", "png"])
-#     else:
-#         uploaded_image = st.camera_input("📷 Take a picture of the food item")
-    
-#     if uploaded_image is not None:
-#         # Display the uploaded image
-#         st.image(uploaded_image, caption='📷 **Uploaded Image**', use_column_width=True)
-        
-#         # Encode and send the image to the AI model
-#         base64_image = image_detection.encode_image(uploaded_image)
-#         model_output = image_detection.get_food_name(base64_image)
-        
-#         # Assuming `model_output` is a dictionary with the structure provided
-#         response = model_output.get("response")
-        
-#         if response:
-#             st.markdown(f"**🍲 Food Name**: <span style='color:green'>{response.get('food_name')}</span>", unsafe_allow_html=True)
-#             st.markdown(f"**📏 Portion Size**: <span style='color:blue'>{response.get('portion_size')}</span>", unsafe_allow_html=True)
-#             st.markdown(f"**🔥 Calories Estimate**: <span style='color:red'>{response.get('calories_estimate')}</span>", unsafe_allow_html=True)
-#             st.markdown(f"**🏷️ Categories**: <span style='color:purple'>{', '.join(response.get('categories', []))}</span>", unsafe_allow_html=True)
-#             st.markdown(f"**🕒 Meal Time**: <span style='color:orange'>{', '.join(response.get('meal_time', []))}</span>", unsafe_allow_html=True)
-#             st.markdown(f"**🌍 Cuisine**: <span style='color:brown'>{response.get('cuisine')}</span>", unsafe_allow_html=True)
-#             st.markdown(f"**🛒 Ingredients**: <span style='color:darkblue'>{', '.join(response.get('ingredients', []))}</span>", unsafe_allow_html=True)
-            
-#             st.write("**👨‍🍳 How to Cook:**")
-#             for step in response.get('how_to_cook', []):
-#                 st.markdown(f"- {step} 🍴", unsafe_allow_html=True)
-                
-#             st.write("**🍽️ Recommended Sides:**")
-#             for side in response.get('recommended_sides', []):
-#                 st.markdown(f"- **{side['side_name']}**: _{side['description']}_", unsafe_allow_html=True)
-                
-#             st.write("**🥤 Recommended Drinks:**")
-#             for drink in response.get('recommended_drinks', []):
-#                 st.markdown(f"- **{drink['drink_name']}**: _{drink['description']}_", unsafe_allow_html=True)
-                
-#             st.markdown(f"**📝 Notes**: <span style='color:gray'>{response.get('notes')}</span>", unsafe_allow_html=True)
-#         else:
-#             st.write("❌ This is not recognized as a food item.")

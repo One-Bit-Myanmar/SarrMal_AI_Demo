@@ -139,6 +139,23 @@ def generate_gemini_v3(prompt):
         st.error("😥 An unexpected error occurred. Please try again.")
         # st.write(e)
         return None
+    
+def suggestion_from_image(prompt):
+    try:
+        model = genai.GenerativeModel(model_name='tunedModels/for-food-image-to-text-v1-9kiq0o2clyrn')
+        result = model.generate_content(prompt)
+        # cleaned_result = result.text.strip("```json").strip("```")
+        # data = json.loads(cleaned_result)
+        return result.text
+    except json.JSONDecodeError as json_err:
+        st.error("😥 There was an error processing the response. Please try again later.")
+        # print("There was an error processing the response. Please try again later.")
+        # print(json_err)
+        return None
+    except Exception as e:
+        st.error("😥 An unexpected error occurred. Please try again.")
+        # st.write(e)
+        return None
 
 #For testing the models    
     
@@ -163,3 +180,5 @@ def generate_gemini_v3(prompt):
 #         "preferred": "Burmese",
 #         "food-type": "Vegetarian",
 #     }"""))
+
+# print(suggestion_from_image("Egg fried Rice"))
